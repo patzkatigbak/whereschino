@@ -15,52 +15,103 @@
 
         h1 {
             color: #333;
+            margin-bottom: 5px;
+        }
+
+        .scoreboard {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 15px auto;
+            max-width: 400px;
+            background-color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .score-box {
+            font-size: 1.1rem;
+            color: #555;
+        }
+
+        .score-val {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 1.3rem;
         }
 
         .game-container {
             display: flex;
             justify-content: center;
             gap: 20px;
-            margin: 40px auto;
+            margin: 30px auto;
             max-width: 600px;
         }
 
+        /* Box styling adjusted for transparent bag image */
         .box {
             width: 150px;
             height: 150px;
-            background-color: #3498db;
-            border: 4px solid #2980b9;
-            border-radius: 10px;
+            background-color: transparent; /* Removed blue background */
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.2s, background-color 0.2s;
+            transition: transform 0.2s;
             position: relative;
-            overflow: hidden;
         }
 
         .box:hover {
             transform: scale(1.05);
-            background-color: #2980b9;
         }
 
+        /* Shuffle Animation */
+        .box.shuffling {
+            animation: shuffle 0.5s ease-in-out;
+        }
+
+        @keyframes shuffle {
+            0% { transform: translateX(0); }
+            20% { transform: translateX(-15px) rotate(-5deg); }
+            40% { transform: translateX(15px) rotate(5deg); }
+            60% { transform: translateX(-10px) rotate(-3deg); }
+            80% { transform: translateX(10px) rotate(3deg); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Both images fill the box area */
         .box img {
-            width: 80%;
-            height: 80%;
+            position: absolute;
+            width: 90%;
+            height: 90%;
             object-fit: contain;
-            display: none; /* Hidden by default */
+            transition: opacity 0.3s ease, transform 0.3s ease;
         }
 
-        /* Revealed states */
-        .box.revealed {
-            background-color: #fff;
-            cursor: default;
+        /* Chino/Empty images are hidden behind the bag initially */
+        .content-img {
+            z-index: 1;
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        /* The bag image sits on top */
+        .bag-img {
+            z-index: 2;
+            opacity: 1;
+        }
+
+        /* When revealed: hide the bag, show the cat/empty space */
+        .box.revealed .bag-img {
+            opacity: 0;
+            transform: translateY(-20px); /* Makes the bag look like it lifts up */
             pointer-events: none;
         }
 
-        .box.revealed img {
-            display: block;
+        .box.revealed .content-img {
+            opacity: 1;
+            transform: scale(1);
         }
 
         #message {
@@ -92,50 +143,73 @@
 <body>
 
     <h1>Where's Chino?</h1>
-    <p>Click on a box to find Chino!</p>
+    <p>Click on a bag to find Chino!</p>
+
+    <div class="scoreboard">
+        <div class="score-box">Current Streak: <span id="currentStreak" class="score-val">0</span></div>
+        <div class="score-box">Best Streak: <span id="bestStreak" class="score-val">0</span></div>
+    </div>
 
     <div class="game-container">
         <div class="box" onclick="checkChoice(0)" id="box0">
-            <img src="chino.png" alt="Chino" id="img0">
+            <img src="bag.png" alt="Bag" class="bag-img">
+            <img src="chino.png" alt="Chino" id="img0" class="content-img">
         </div>
         <div class="box" onclick="checkChoice(1)" id="box1">
-            <img src="chino.png" alt="Chino" id="img1">
+            <img src="bag.png" alt="Bag" class="bag-img">
+            <img src="chino.png" alt="Chino" id="img1" class="content-img">
         </div>
         <div class="box" onclick="checkChoice(2)" id="box2">
-            <img src="chino.png" alt="Chino" id="img2">
+            <img src="bag.png" alt="Bag" class="bag-img">
+            <img src="chino.png" alt="Chino" id="img2" class="content-img">
         </div>
     </div>
 
     <div id="message"></div>
-    <button onclick="resetGame()">Play Again</button>
+    <button onclick="triggerShuffle()">Play Again</button>
 
     <script>
         let chinoPosition;
-        let gameActive = true;
+        let gameActive = false;
+        
+        let currentStreak = 0;
+        let bestStreak = localStorage.getItem('chinoBestStreak') ? parseInt(localStorage.getItem('chinoBestStreak')) : 0;
 
-        function resetGame() {
-            // 1. Randomly pick a box (0, 1, or 2)
-            chinoPosition = Math.floor(Math.random() * 3);
-            gameActive = true;
-            
-            // 2. Clear messages
-            document.getElementById('message').innerText = "";
+        document.getElementById('bestStreak').innerText = bestStreak;
+
+        function triggerShuffle() {
+            gameActive = false;
+            document.getElementById('message').innerText = "Chino is hiding...";
             document.getElementById('message').className = "";
 
-            // 3. Reset the boxes visually
+            for (let i = 0; i < 3; i++) {
+                const box = document.getElementById(`box${i}`);
+                box.classList.remove('revealed');
+                box.classList.remove('shuffling');
+                void box.offsetWidth; 
+                box.classList.add('shuffling');
+            }
+
+            setTimeout(() => {
+                resetGamePositions();
+            }, 500);
+        }
+
+        function resetGamePositions() {
+            chinoPosition = Math.floor(Math.random() * 3);
+            gameActive = true;
+            document.getElementById('message').innerText = "Find him!";
+
             for (let i = 0; i < 3; i++) {
                 const box = document.getElementById(`box${i}`);
                 const img = document.getElementById(`img${i}`);
                 
-                box.classList.remove('revealed');
+                box.classList.remove('shuffling');
                 
-                // Set the image source. 
-                // If it's Chino's position, show Chino. Otherwise, show an empty space or a "miss" image.
                 if (i === chinoPosition) {
                     img.src = "chino.png"; 
                     img.alt = "Chino!";
                 } else {
-                    // You can replace this with an empty transparent PNG or a "wrong" icon
                     img.src = "empty.png"; 
                     img.alt = "Empty...";
                 }
@@ -143,30 +217,40 @@
         }
 
         function checkChoice(clickedIndex) {
-            if (!gameActive) return; // Prevent clicking after game ends
+            if (!gameActive) return;
 
             gameActive = false;
             const messageDiv = document.getElementById('message');
 
-            // Reveal the clicked box
             document.getElementById(`box${clickedIndex}`).classList.add('revealed');
 
             if (clickedIndex === chinoPosition) {
                 messageDiv.innerText = "You found Chino! 🎉 You win!";
                 messageDiv.className = "win-text";
+                
+                currentStreak++;
+                document.getElementById('currentStreak').innerText = currentStreak;
+                
+                if (currentStreak > bestStreak) {
+                    bestStreak = currentStreak;
+                    document.getElementById('bestStreak').innerText = bestStreak;
+                    localStorage.setItem('chinoBestStreak', bestStreak);
+                }
             } else {
-                messageDiv.innerText = "Tragic! That box was empty. 😿";
+                messageDiv.innerText = "Tragic! That bag was empty. 😿";
                 messageDiv.className = "lose-text";
                 
-                // Reveal where Chino actually was after a brief delay
+                currentStreak = 0;
+                document.getElementById('currentStreak').innerText = currentStreak;
+                
                 setTimeout(() => {
                     document.getElementById(`box${chinoPosition}`).classList.add('revealed');
                 }, 500);
             }
         }
 
-        // Initialize the game on page load
-        resetGame();
+        // Start the game
+        triggerShuffle();
     </script>
 </body>
 </html>
