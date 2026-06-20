@@ -398,6 +398,13 @@
                 losingPool.push('Juno', 'Cookie', 'Panini');
             }
 
+            const imageMap = {
+                Chino: 'chino.png',
+                Juno: 'Juno.png',
+                Cookie: 'Cookie.png',
+                Panini: 'Panini.PNG'
+            };
+
             losingPool.sort(() => Math.random() - 0.5);
             let losingPoolIndex = 0;
             boxAssignments = [];
@@ -410,12 +417,12 @@
                 
                 if (i === chinoPosition) {
                     boxAssignments[i] = "Chino";
-                    img.src = "chino.png";
+                    img.src = imageMap.Chino;
                     img.alt = "Chino!";
                 } else {
                     const currentLoser = losingPool[losingPoolIndex];
                     boxAssignments[i] = currentLoser;
-                    img.src = currentLoser.toLowerCase() + ".png";
+                    img.src = imageMap[currentLoser];
                     img.alt = currentLoser + "...";
                     losingPoolIndex++;
                 }
