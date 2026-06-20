@@ -1,3 +1,3 @@
 Github link: https://patzkatigbak.github.io/whereschino/
 
-Live website: https://www.whereschino.com
+Live website: https://whereschino.com/

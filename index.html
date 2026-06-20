@@ -53,7 +53,7 @@
         .box {
             width: 150px;
             height: 150px;
-            background-color: transparent; /* Removed blue background */
+            background-color: transparent;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -172,6 +172,9 @@
         let chinoPosition;
         let gameActive = false;
         
+        // Track which cat name is currently assigned to which box index
+        let boxAssignments = [];
+
         let currentStreak = 0;
         let bestStreak = localStorage.getItem('chinoBestStreak') ? parseInt(localStorage.getItem('chinoBestStreak')) : 0;
 
@@ -200,6 +203,13 @@
             gameActive = true;
             document.getElementById('message').innerText = "Find him!";
 
+            // Define our pool of losing cats and shuffle them randomly
+            let losingPool = ["Juno", "Cookie"];
+            losingPool.sort(() => Math.random() - 0.5);
+            
+            let losingPoolIndex = 0;
+            boxAssignments = [];
+
             for (let i = 0; i < 3; i++) {
                 const box = document.getElementById(`box${i}`);
                 const img = document.getElementById(`img${i}`);
@@ -207,11 +217,18 @@
                 box.classList.remove('shuffling');
                 
                 if (i === chinoPosition) {
+                    boxAssignments[i] = "Chino";
                     img.src = "chino.png"; 
                     img.alt = "Chino!";
                 } else {
-                    img.src = "empty.png"; 
-                    img.alt = "Empty...";
+                    // Grab one of the shuffled losing cats
+                    let currentLoser = losingPool[losingPoolIndex];
+                    boxAssignments[i] = currentLoser;
+                    
+                    // Set src to Juno.png or Cookie.png depending on who it is
+                    img.src = currentLoser + ".png"; 
+                    img.alt = currentLoser + "...";
+                    losingPoolIndex++;
                 }
             }
         }
@@ -222,6 +239,7 @@
             gameActive = false;
             const messageDiv = document.getElementById('message');
 
+            // 1. Reveal ONLY the bag the player actually clicked
             document.getElementById(`box${clickedIndex}`).classList.add('revealed');
 
             if (clickedIndex === chinoPosition) {
@@ -237,12 +255,15 @@
                     localStorage.setItem('chinoBestStreak', bestStreak);
                 }
             } else {
-                messageDiv.innerText = "Tragic! That bag was Juno. 😿";
+                // Look up the exact cat name assigned to that incorrect box
+                let catFound = boxAssignments[clickedIndex];
+                messageDiv.innerText = `Tragic! That bag was ${catFound}. 😿`;
                 messageDiv.className = "lose-text";
                 
                 currentStreak = 0;
                 document.getElementById('currentStreak').innerText = currentStreak;
                 
+                // 2. Wait a half-second, then reveal ONLY where Chino was hiding
                 setTimeout(() => {
                     document.getElementById(`box${chinoPosition}`).classList.add('revealed');
                 }, 500);
@@ -252,5 +273,9 @@
         // Start the game
         triggerShuffle();
     </script>
+
+    <script data-goatcounter="https://whereschino.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+
 </body>
 </html>
