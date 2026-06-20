@@ -204,14 +204,19 @@
         document.getElementById('bestStreak').innerText = bestStreak;
 
         function updateVisitorCount() {
-            // Using counterapi.dev - a live, reliable replacement service
             fetch('https://api.counterapi.dev/v1/whereschino/visits/up')
                 .then(res => res.json())
                 .then(data => {
-                    document.getElementById('visitCount').innerText = data.value;
+                    // Look for data.count or data.value depending on the endpoint structure
+                    const countValue = data.count !== undefined ? data.count : data.value;
+                    
+                    if (countValue !== undefined) {
+                        document.getElementById('visitCount').innerText = countValue;
+                    } else {
+                        document.getElementById('visitCount').innerText = "1";
+                    }
                 })
                 .catch(err => {
-                    // Fallback to hide it cleanly if the service is momentarily down
                     document.getElementById('visitCount').innerText = "1"; 
                 });
         }
