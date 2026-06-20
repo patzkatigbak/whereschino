@@ -10,7 +10,7 @@
             text-align: center;
             background-color: #f0f2f5;
             margin: 0;
-            padding: 20px;
+            padding: 20px 20px 60px 20px; /* Added extra padding at bottom to prevent counter from overlapping game buttons */
         }
 
         h1 {
@@ -39,6 +39,25 @@
             font-weight: bold;
             color: #2c3e50;
             font-size: 1.3rem;
+        }
+
+        /* Fixed Bottom-Anchored Visitor Counter Styling */
+        .visitor-counter {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #ffffff;
+            padding: 10px 0;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+        
+        #visitCount {
+            font-weight: bold;
+            color: #2c3e50;
         }
 
         .game-container {
@@ -168,6 +187,10 @@
     <div id="message"></div>
     <button onclick="triggerShuffle()">Play Again</button>
 
+    <div class="visitor-counter">
+        Total Visits: <span id="visitCount">...</span>
+    </div>
+
     <script>
         let chinoPosition;
         let gameActive = false;
@@ -179,6 +202,20 @@
         let bestStreak = localStorage.getItem('chinoBestStreak') ? parseInt(localStorage.getItem('chinoBestStreak')) : 0;
 
         document.getElementById('bestStreak').innerText = bestStreak;
+
+        // --- Visitor Counter Logic ---
+        function updateVisitorCount() {
+            fetch('https://api.countapi.xyz/hit/whereschino.com/visits')
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('visitCount').innerText = data.value;
+                })
+                .catch(err => {
+                    document.getElementById('visitCount').innerText = "1"; 
+                });
+        }
+        updateVisitorCount();
+
 
         function triggerShuffle() {
             gameActive = false;
@@ -225,7 +262,6 @@
                     let currentLoser = losingPool[losingPoolIndex];
                     boxAssignments[i] = currentLoser;
                     
-                    // Set src to Juno.png or Cookie.png depending on who it is
                     img.src = currentLoser + ".png"; 
                     img.alt = currentLoser + "...";
                     losingPoolIndex++;
@@ -239,7 +275,6 @@
             gameActive = false;
             const messageDiv = document.getElementById('message');
 
-            // 1. Reveal ONLY the bag the player actually clicked
             document.getElementById(`box${clickedIndex}`).classList.add('revealed');
 
             if (clickedIndex === chinoPosition) {
@@ -255,7 +290,6 @@
                     localStorage.setItem('chinoBestStreak', bestStreak);
                 }
             } else {
-                // Look up the exact cat name assigned to that incorrect box
                 let catFound = boxAssignments[clickedIndex];
                 messageDiv.innerText = `Tragic! That bag was ${catFound}. 😿`;
                 messageDiv.className = "lose-text";
@@ -263,7 +297,6 @@
                 currentStreak = 0;
                 document.getElementById('currentStreak').innerText = currentStreak;
                 
-                // 2. Wait a half-second, then reveal ONLY where Chino was hiding
                 setTimeout(() => {
                     document.getElementById(`box${chinoPosition}`).classList.add('revealed');
                 }, 500);
@@ -273,9 +306,5 @@
         // Start the game
         triggerShuffle();
     </script>
-
-    <script data-goatcounter="https://whereschino.goatcounter.com/count"
-        async src="//gc.zgo.at/count.js"></script>
-
 </body>
 </html>
