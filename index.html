@@ -203,14 +203,15 @@
 
         document.getElementById('bestStreak').innerText = bestStreak;
 
-        // --- Visitor Counter Logic ---
         function updateVisitorCount() {
-            fetch('https://api.countapi.xyz/hit/whereschino.com/visits')
+            // Using counterapi.dev - a live, reliable replacement service
+            fetch('https://api.counterapi.dev/v1/whereschino/visits/up')
                 .then(res => res.json())
                 .then(data => {
                     document.getElementById('visitCount').innerText = data.value;
                 })
                 .catch(err => {
+                    // Fallback to hide it cleanly if the service is momentarily down
                     document.getElementById('visitCount').innerText = "1"; 
                 });
         }
