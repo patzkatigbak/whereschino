@@ -466,5 +466,24 @@
         // Start the game
         triggerShuffle();
     </script>
+
+    <!-- Client-side deterrents: disable right-click and common shortcuts (not secure) -->
+    <script>
+        // Prevent context menu (right-click)
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
+        // Block common developer shortcuts: F12, Ctrl+U, Ctrl+Shift+I, Ctrl+Shift+C
+        document.addEventListener('keydown', function(e) {
+            if (
+                e.key === 'F12' ||
+                (e.ctrlKey && e.key === 'u') ||
+                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C'))
+            ) {
+                e.preventDefault();
+            }
+        });
+    </script>
 </body>
 </html>
